@@ -351,3 +351,9 @@ DOM.facilitySelect.addEventListener("change", e => {
   updateItemSelect(e.target.value);
 });
 DOM.calcBtn.addEventListener("click", calculate);
+
+window.addEventListener("DOMContentLoaded", () => {
+  // 혹시 모를 캐시 꼬임 방지를 위해 초기화 후 실행
+  window.ITEM_MASTER_CACHE = null; 
+  getMasterList();
+});
