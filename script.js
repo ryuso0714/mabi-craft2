@@ -6,7 +6,6 @@ const DOM = {
   calcBtn: document.getElementById("calcBtn"),
   craftResult: document.getElementById("craftResult"),
   rawResult: document.getElementById("rawResult"),
-  // 신설 보유재료 DOM (form 내부의 input을 정확히 가리키도록 수정)
   invSearchInput: document.querySelector("#invSearchInput"),
   searchResults: document.querySelector("#searchResults"),
   invInputRow: document.getElementById("invInputRow"),
@@ -104,7 +103,7 @@ function findItem(itemName) {
   return null;
 }
 
-// [1] 보유재료 검색창 입력 이벤트 (중복 제거 및 꼬인 괄호 정리 완료!)
+// [1] 보유재료 검색창 입력 이벤트
 DOM.invSearchInput.addEventListener("input", (e) => {
   const currentMaster = getMasterList();
   const query = e.target.value.trim().toLowerCase();
