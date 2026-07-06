@@ -231,9 +231,10 @@ function resolveItem(itemName, quantity, result, currentInventory) {
 }
 
 // 메인 계산 함수
+// 메인 계산 함수 (최종 결과물 보유량 반영 버전)
 function calculate() {
   const item = DOM.itemSelect.value;
-  const count = Number(DOM.countInput.value);
+  let count = Number(DOM.countInput.value); // const를 let으로 변경하여 수량 조절이 가능하게 합니다.
 
   if (!item) {
     alert("아이템을 선택해 주세요.");
@@ -244,10 +245,32 @@ function calculate() {
     return;
   }
 
-  const result = { processCount: {}, materials: {} };
+  // 얕은 복사로 유저 인벤토리 상태를 가져옵니다.
   const inventoryCopy = JSON.parse(JSON.stringify(USER_INVENTORY));
 
-  resolveItem(item, count, result, inventoryCopy);
+  // [💡 추가된 핵심 로직] 
+  // 만약 만들고자 하는 최종 아이템이 이미 인벤토리에 있다면?
+  if (inventoryCopy[item] && inventoryCopy[item] > 0) {
+    const available = inventoryCopy[item];
+    
+    if (available >= count) {
+      // 이미 충분히 가지고 있다면 계산할 필요가 없음!
+      inventoryCopy[item] -= count; // 인벤토리에서 차감만 해줌
+      count = 0; // 더이상 만들 개수가 없음
+    } else {
+      // 가지고 있는 양이 목표량보다 적다면, 있는 만큼 빼고 부족한 만큼만 목표량으로 설정
+      count -= available;
+      inventoryCopy[item] = 0; // 인벤토리에 있던 건 전부 사용 처리
+    }
+  }
+
+  const result = { processCount: {}, materials: {} };
+
+  // 최종적으로 '부족한 개수(count)'가 0보다 클 때만 하위 재료 연산을 돌립니다.
+  if (count > 0) {
+    resolveItem(item, count, result, inventoryCopy);
+  }
+  
   renderResult(result);
 }
 
