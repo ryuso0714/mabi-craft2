@@ -22,10 +22,19 @@ const DOM = {
 let USER_INVENTORY = {};
 
 // 게임 내 존재하는 모든 아이템 마스터 리스트 및 태그 정보 생성
-function getALLItemsWithTags() {
+// ✅ 지운 자리에 이 코드를 통째로 복붙하세요!
+function getMasterList() {
+  // 이미 생성된 캐시가 있다면 그걸 반환
+  if (window.ITEM_MASTER_CACHE && Object.keys(window.ITEM_MASTER_CACHE).length > 0) {
+    return window.ITEM_MASTER_CACHE;
+  }
+  
+  // 데이터 구조가 아직 안 불려왔다면 빈 객체 반환 방지
+  if (typeof GAME_DB === 'undefined') return {};
+
   const allItems = {};
   
-  // 1단계: DB 상에 존재하는 모든 가공품 등록
+  // 1단계: 가공품 등록
   for (const category in GAME_DB) {
     let categoryName = "";
     switch(category) {
@@ -41,7 +50,7 @@ function getALLItemsWithTags() {
     }
   }
 
-  // 2단계: 가공품의 재료로만 언급되는 순수 원재료들을 추적하여 등록
+  // 2단계: 순수 원재료 등록
   for (const category in GAME_DB) {
     for (const itemName in GAME_DB[category]) {
       const ingredients = GAME_DB[category][itemName].ingredients;
@@ -52,6 +61,8 @@ function getALLItemsWithTags() {
       }
     }
   }
+
+  window.ITEM_MASTER_CACHE = allItems;
   return allItems;
 }
 
@@ -100,10 +111,15 @@ function findItem(itemName) {
 
 // 보유재료 검색창 입력 이벤트
 DOM.invSearchInput.addEventListener("input", (e) => {
-  if (!window.ITEM_MASTER_CACHE) {
-    window.ITEM_MASTER_CACHE = getALLItemsWithTags();
+  // 위에서 만든 안전한 함수를 통해 실시간으로 마스터 리스트를 가져옵니다.
+  const currentMaster = getMasterList();
+
+  const query = e.target.value.trim().toLowerCase();
+  if (!query) {
+    DOM.searchResults.classList.add("hidden");
+    return;
   }
-  const currentMaster = window.ITEM_MASTER_CACHE;
+  // ... (이하 기존 내부 코드 유지)
 
   const query = e.target.value.trim().toLowerCase();
   if (!query) {
@@ -288,16 +304,15 @@ DOM.calcBtn.addEventListener("click", calculate);
 
 // 간편 검색창 입력 이벤트
 DOM.quickSearchInput.addEventListener("input", (e) => {
-  if (!window.ITEM_MASTER_CACHE) {
-    window.ITEM_MASTER_CACHE = getALLItemsWithTags();
-  }
-  const currentMaster = window.ITEM_MASTER_CACHE;
+  // 안전하게 데이터를 가져옵니다.
+  const currentMaster = getMasterList();
 
   const query = e.target.value.trim().toLowerCase();
   if (!query) {
     DOM.quickSearchResults.classList.add("hidden");
     return;
   }
+  // ... (이하 기존 내부 코드 유지)
 
   DOM.quickSearchResults.innerHTML = "";
   let hasResults = false;
