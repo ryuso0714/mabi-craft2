@@ -300,47 +300,47 @@ DOM.facilitySelect.addEventListener("change", e => {
 
 DOM.calcBtn.addEventListener("click", calculate);
 
-// --- ⚡ 제작 아이템 간편 검색창 및 자동 동기화 로직 ---
-
-// 간편 검색창 입력 이벤트
-DOM.quickSearchInput.addEventListener("input", (e) => {
-  // 안전하게 데이터를 가져옵니다.
+// 보유재료 검색창 입력 이벤트
+DOM.invSearchInput.addEventListener("input", (e) => {
   const currentMaster = getMasterList();
 
   const query = e.target.value.trim().toLowerCase();
   if (!query) {
-    DOM.quickSearchResults.classList.add("hidden");
+    DOM.searchResults.classList.add("hidden");
     return;
   }
-  // ... (이하 기존 내부 코드 유지)
 
-  DOM.quickSearchResults.innerHTML = "";
+  DOM.searchResults.innerHTML = "";
   let hasResults = false;
 
+  // ITEM_MASTER를 currentMaster로 교정 완료했습니다
   for (const [name, info] of Object.entries(currentMaster)) {
-    // 💡 원재료는 '제작(가공)'할 수 없으므로, 가공품인 경우에만 검색 결과에 노출합니다.
-    if (info.isCrafted && name.toLowerCase().includes(query)) {
+    if (name.toLowerCase().includes(query)) {
       hasResults = true;
       const div = document.createElement("div");
       div.className = "search-item";
       div.innerHTML = `
         <span>${name}</span>
-        <span class="badge crafted">${info.tagText}</span>
+        <span class="badge ${info.isCrafted ? 'crafted' : 'raw'}">${info.tagText}</span>
       `;
       
-      // 검색된 아이템 클릭 시 하단 카테고리 자동 선택(채우기)
+      // 검색된 아이템 클릭 시 입력창 활성화
       div.addEventListener("click", () => {
-        selectItemAutomatically(name);
+        DOM.selectedItemName.textContent = name;
+        DOM.invCountInput.value = 1;
+        DOM.invInputRow.classList.remove("hidden");
+        DOM.searchResults.classList.add("hidden");
+        DOM.invSearchInput.value = "";
       });
 
-      DOM.quickSearchResults.appendChild(div);
+      DOM.searchResults.appendChild(div);
     }
   }
 
   if (hasResults) {
-    DOM.quickSearchResults.classList.remove("hidden");
+    DOM.searchResults.classList.remove("hidden");
   } else {
-    DOM.quickSearchResults.classList.add("hidden");
+    DOM.searchResults.classList.add("hidden");
   }
 });
 
