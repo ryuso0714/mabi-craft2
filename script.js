@@ -5,19 +5,65 @@ const DOM = {
   countInput: document.getElementById("targetCount"),
   calcBtn: document.getElementById("calcBtn"),
   craftResult: document.getElementById("craftResult"),
-  rawResult: document.getElementById("rawResult")
+  rawResult: document.getElementById("rawResult"),
+  // 신설 보유재료 DOM
+  invSearchInput: document.getElementById("invSearchInput"),
+  searchResults: document.getElementById("searchResults"),
+  invInputRow: document.getElementById("invInputRow"),
+  selectedItemName: document.getElementById("selectedItemName"),
+  invCountInput: document.getElementById("invCountInput"),
+  addInvBtn: document.getElementById("addInvBtn"),
+  invList: document.getElementById("invList")
 };
 
-// 특정 시설의 아이템 목록 가져오기
+// 유저가 입력한 보유 재료 상태 관리 (예: { "철괴": 5, "철 광석": 20 })
+let USER_INVENTORY = {};
+
+// 게임 내 존재하는 모든 아이템 마스터 리스트 및 태그 정보 생성
+function getALLItemsWithTags() {
+  const allItems = {};
+  
+  // 1단계: DB 상에 존재하는 모든 가공품 등록
+  for (const category in GAME_DB) {
+    let categoryName = "";
+    switch(category) {
+      case 'metal': categoryName = "금속"; break;
+      case 'wood': categoryName = "목재"; break;
+      case 'leather': categoryName = "가죽"; break;
+      case 'cloth': categoryName = "옷감"; break;
+      case 'potion': categoryName = "약품"; break;
+      case 'food': categoryName = "식재료"; break;
+    }
+    for (const itemName in GAME_DB[category]) {
+      allItems[itemName] = { isCrafted: true, tagText: `${categoryName} 가공품` };
+    }
+  }
+
+  // 2단계: 가공품의 재료로만 언급되는 순수 원재료들을 추적하여 등록
+  for (const category in GAME_DB) {
+    for (const itemName in GAME_DB[category]) {
+      const ingredients = GAME_DB[category][itemName].ingredients;
+      for (const matName in ingredients) {
+        if (!allItems[matName]) {
+          allItems[matName] = { isCrafted: false, tagText: "원재료" };
+        }
+      }
+    }
+  }
+  return allItems;
+}
+
+const ITEM_MASTER = getALLItemsWithTags();
+
+// 특정 시설의 아이템 목록 가져오기 (기존 유지)
 function getItemsByFacility(facilityKey) {
   if (!facilityKey || !GAME_DB[facilityKey]) return [];
   return Object.keys(GAME_DB[facilityKey]);
 }
 
-// 아이템 선택 Select 박스 업데이트
+// 아이템 선택 Select 박스 업데이트 (기존 유지)
 function updateItemSelect(facilityKey) {
   DOM.itemSelect.innerHTML = "";
-
   const items = getItemsByFacility(facilityKey);
 
   if (!facilityKey) {
@@ -27,8 +73,6 @@ function updateItemSelect(facilityKey) {
   }
 
   DOM.itemSelect.disabled = false;
-  
-  // 기본 기본 안내 옵션 생성
   const defaultOption = document.createElement("option");
   defaultOption.value = "";
   defaultOption.textContent = "아이템 선택";
@@ -42,7 +86,7 @@ function updateItemSelect(facilityKey) {
   });
 }
 
-// 전체 DB에서 특정 아이템 정보 검색
+// 전체 DB에서 특정 아이템 정보 검색 (기존 유지)
 function findItem(itemName) {
   for (const category in GAME_DB) {
     if (GAME_DB[category][itemName]) {
@@ -52,8 +96,111 @@ function findItem(itemName) {
   return null;
 }
 
-// 재귀적으로 재료 계산 연산
-function resolveItem(itemName, quantity, result) {
+// --- 보유 재료 기능 검색 및 UI 인터랙션 로직 ---
+
+// 보유재료 검색창 입력 이벤트
+DOM.invSearchInput.addEventListener("input", (e) => {
+  const query = e.target.value.trim().toLowerCase();
+  if (!query) {
+    DOM.searchResults.classList.add("hidden");
+    return;
+  }
+
+  DOM.searchResults.innerHTML = "";
+  let hasResults = false;
+
+  for (const [name, info] of Object.entries(ITEM_MASTER)) {
+    if (name.toLowerCase().includes(query)) {
+      hasResults = true;
+      const div = document.createElement("div");
+      div.className = "search-item";
+      div.innerHTML = `
+        <span>${name}</span>
+        <span class="badge ${info.isCrafted ? 'crafted' : 'raw'}">${info.tagText}</span>
+      `;
+      
+      // 검색된 아이템 클릭 시 입력창 활성화
+      div.addEventListener("click", () => {
+        DOM.selectedItemName.textContent = name;
+        DOM.invCountInput.value = 1;
+        DOM.invInputRow.classList.remove("hidden");
+        DOM.searchResults.classList.add("hidden");
+        DOM.invSearchInput.value = "";
+      });
+
+      DOM.searchResults.appendChild(div);
+    }
+  }
+
+  if (hasResults) {
+    DOM.searchResults.classList.remove("hidden");
+  } else {
+    DOM.searchResults.classList.add("hidden");
+  }
+});
+
+// 외부 클릭 시 검색결과 닫기
+document.addEventListener("click", (e) => {
+  if (!DOM.invSearchInput.contains(e.target) && !DOM.searchResults.contains(e.target)) {
+    DOM.searchResults.classList.add("hidden");
+  }
+});
+
+// 보유 재료 '추가' 버튼 클릭
+DOM.addInvBtn.addEventListener("click", () => {
+  const name = DOM.selectedItemName.textContent;
+  const count = parseInt(DOM.invCountInput.value);
+
+  if (!name || isNaN(count) || count <= 0) return;
+
+  // 기존 재고가 있다면 더해줌
+  USER_INVENTORY[name] = (USER_INVENTORY[name] || 0) + count;
+  
+  DOM.invInputRow.classList.add("hidden");
+  renderInventoryTags();
+});
+
+// 보유 재료 태그 리스트 렌더링
+function renderInventoryTags() {
+  DOM.invList.innerHTML = "";
+  for (const [name, count] of Object.entries(USER_INVENTORY)) {
+    if (count <= 0) continue;
+    
+    const tag = document.createElement("div");
+    tag.className = "inv-tag";
+    tag.innerHTML = `
+      <span>${name} x ${count}</span>
+      <button class="remove-btn" data-name="${name}">×</button>
+    `;
+
+    // 삭제 버튼 클릭 시 보유량 소멸
+    tag.querySelector(".remove-btn").addEventListener("click", (e) => {
+      const targetName = e.target.getAttribute("data-name");
+      delete USER_INVENTORY[targetName];
+      renderInventoryTags();
+    });
+
+    DOM.invList.appendChild(tag);
+  }
+}
+
+// --- ⚙️ 보유 재료 차감을 포함한 재귀 연산 핵심 로직 ---
+
+function resolveItem(itemName, quantity, result, currentInventory) {
+  // 1. 현재 필요 수량에서 유저가 보유한 재고가 있다면 차감
+  if (currentInventory[itemName] && currentInventory[itemName] > 0) {
+    const available = currentInventory[itemName];
+    if (available >= quantity) {
+      // 보유량으로 다 메꿀 수 있는 경우
+      currentInventory[itemName] -= quantity;
+      return; // 더 이상 하위 재료 전개 없음
+    } else {
+      // 일부만 메꾸고 부족분만큼 수량 차감
+      quantity -= available;
+      currentInventory[itemName] = 0;
+    }
+  }
+
   const item = findItem(itemName);
 
   // 제작할 수 없는 원재료인 경우 종료 조건
@@ -62,12 +209,19 @@ function resolveItem(itemName, quantity, result) {
     return;
   }
 
-  // 제작 횟수 올림 계산 (정수형 회차)
+  // 부족분에 대한 제작 횟수 올림 계산
   const craftsNeeded = Math.ceil(quantity / item.output);
   result.processCount[itemName] = (result.processCount[itemName] || 0) + craftsNeeded;
 
+  // 남은 잉여 생산품(Overproduction)이 있다면 인벤토리에 넣어 다음 연산에 기여하게 함
+  const totalProduced = craftsNeeded * item.output;
+  const surplus = totalProduced - quantity;
+  if (surplus > 0) {
+    currentInventory[itemName] = (currentInventory[itemName] || 0) + surplus;
+  }
+
   for (const [mat, amt] of Object.entries(item.ingredients)) {
-    resolveItem(mat, amt * craftsNeeded, result);
+    resolveItem(mat, amt * craftsNeeded, result, currentInventory);
   }
 }
 
@@ -76,7 +230,6 @@ function calculate() {
   const item = DOM.itemSelect.value;
   const count = Number(DOM.countInput.value);
 
-  // 입력값 예외 처리 규칙 추가
   if (!item) {
     alert("아이템을 선택해 주세요.");
     return;
@@ -91,26 +244,32 @@ function calculate() {
     materials: {}
   };
 
-  resolveItem(item, count, result);
+  // 기존 보유창 상태가 손상되지 않도록 딥카피(복사본) 전달하여 연산
+  const inventoryCopy = JSON.parse(JSON.stringify(USER_INVENTORY));
+
+  resolveItem(item, count, result, inventoryCopy);
   renderResult(result);
 }
 
-// 결과 화면 HTML 출력
+// 결과 화면 HTML 출력 (기존 유지)
 function renderResult(result) {
-  // 가독성과 렌더링 성능 최적화를 위한 템플릿 변수화
   let craftHtml = "";
   let rawHtml = "";
 
   for (const [item, count] of Object.entries(result.processCount)) {
-    craftHtml += `<div class="result-item"><strong>${item}</strong> : ${count}회 가공</div>`;
+    if (count > 0) {
+      craftHtml += `<div class="result-item"><strong>${item}</strong> : ${count}회 가공</div>`;
+    }
   }
 
   for (const [item, count] of Object.entries(result.materials)) {
-    rawHtml += `<div class="result-item"><strong>${item}</strong> : ${count}개 필요</div>`;
+    if (count > 0) {
+      rawHtml += `<div class="result-item"><strong>${item}</strong> : ${count}개 필요</div>`;
+    }
   }
 
-  DOM.craftResult.innerHTML = craftHtml || "공정이 없습니다.";
-  DOM.rawResult.innerHTML = rawHtml || "필요한 원재료가 없습니다.";
+  DOM.craftResult.innerHTML = craftHtml || "공정이 없습니다. (보유 재료 충분)";
+  DOM.rawResult.innerHTML = rawHtml || "필요한 원재료가 없습니다. (보유 재료 충분)";
 }
 
 // 이벤트 리스너 등록
