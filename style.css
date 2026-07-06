@@ -163,3 +163,118 @@ button:active {
     gap: 15px;
   }
 }
+/* --- 기존 CSS 하단에 아래 내용을 추가하세요 --- */
+
+/* 보유 재료 섹션 스타일 */
+.search-container {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+/* 검색 결과 드롭다운 목록 */
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e6ff;
+  border-radius: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  margin-top: 5px;
+}
+
+.search-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.search-item:hover {
+  background: #f0f4ff;
+}
+
+/* 원재료 및 가공품 태그 */
+.badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.badge.raw {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.badge.crafted {
+  background-color: #e0e6ff;
+  color: #4d61ff;
+}
+
+/* 개수 입력 행 */
+.inv-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #fafbff;
+  border-radius: 10px;
+  border: 1px solid #e0e6ff;
+}
+
+#selectedItemName {
+  font-weight: 600;
+  font-size: 14px;
+  flex: 1;
+}
+
+#invCountInput {
+  width: 80px;
+}
+
+#addInvBtn {
+  width: auto;
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+/* 추가된 보유 재료 리스트 */
+.inv-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inv-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f4ff;
+  border: 1px solid #d2dcff;
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 13px;
+}
+
+.inv-tag .remove-btn {
+  cursor: pointer;
+  color: #ff6b6b;
+  font-weight: bold;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 14px;
+}
+
+.hidden {
+  display: none !important;
+}
