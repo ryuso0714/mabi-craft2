@@ -53,8 +53,6 @@ function getALLItemsWithTags() {
   return allItems;
 }
 
-const ITEM_MASTER = getALLItemsWithTags();
-
 // 특정 시설의 아이템 목록 가져오기 (기존 유지)
 function getItemsByFacility(facilityKey) {
   if (!facilityKey || !GAME_DB[facilityKey]) return [];
@@ -100,6 +98,11 @@ function findItem(itemName) {
 
 // 보유재료 검색창 입력 이벤트
 DOM.invSearchInput.addEventListener("input", (e) => {
+  if (!window.ITEM_MASTER_CACHE) {
+    window.ITEM_MASTER_CACHE = getALLItemsWithTags();
+  }
+  const currentMaster = window.ITEM_MASTER_CACHE;
+
   const query = e.target.value.trim().toLowerCase();
   if (!query) {
     DOM.searchResults.classList.add("hidden");
