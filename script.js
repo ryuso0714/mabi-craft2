@@ -13,7 +13,9 @@ const DOM = {
   selectedItemName: document.getElementById("selectedItemName"),
   invCountInput: document.getElementById("invCountInput"),
   addInvBtn: document.getElementById("addInvBtn"),
-  invList: document.getElementById("invList")
+  invList: document.getElementById("invList"), // ⚠️ 끝에 쉼표(,)가 있는지 확인하세요!
+  quickSearchInput: document.querySelector("#quickSearchInput"),
+  quickSearchResults: document.querySelector("#quickSearchResults")
 };
 
 // 유저가 입력한 보유 재료 상태 관리 (예: { "철괴": 5, "철 광석": 20 })
@@ -281,3 +283,90 @@ DOM.facilitySelect.addEventListener("change", e => {
 });
 
 DOM.calcBtn.addEventListener("click", calculate);
+
+// --- ⚡ 제작 아이템 간편 검색창 및 자동 동기화 로직 ---
+
+// 간편 검색창 입력 이벤트
+DOM.quickSearchInput.addEventListener("input", (e) => {
+  if (!window.ITEM_MASTER_CACHE) {
+    window.ITEM_MASTER_CACHE = getALLItemsWithTags();
+  }
+  const currentMaster = window.ITEM_MASTER_CACHE;
+
+  const query = e.target.value.trim().toLowerCase();
+  if (!query) {
+    DOM.quickSearchResults.classList.add("hidden");
+    return;
+  }
+
+  DOM.quickSearchResults.innerHTML = "";
+  let hasResults = false;
+
+  for (const [name, info] of Object.entries(currentMaster)) {
+    // 💡 원재료는 '제작(가공)'할 수 없으므로, 가공품인 경우에만 검색 결과에 노출합니다.
+    if (info.isCrafted && name.toLowerCase().includes(query)) {
+      hasResults = true;
+      const div = document.createElement("div");
+      div.className = "search-item";
+      div.innerHTML = `
+        <span>${name}</span>
+        <span class="badge crafted">${info.tagText}</span>
+      `;
+      
+      // 검색된 아이템 클릭 시 하단 카테고리 자동 선택(채우기)
+      div.addEventListener("click", () => {
+        selectItemAutomatically(name);
+      });
+
+      DOM.quickSearchResults.appendChild(div);
+    }
+  }
+
+  if (hasResults) {
+    DOM.quickSearchResults.classList.remove("hidden");
+  } else {
+    DOM.quickSearchResults.classList.add("hidden");
+  }
+});
+
+// 간편 검색창에서 엔터키 입력 시 첫 번째 결과 선택
+DOM.quickSearchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const firstResult = DOM.quickSearchResults.querySelector(".search-item");
+    if (firstResult) firstResult.click();
+  }
+});
+
+// 외부 클릭 시 간편 검색 결과 닫기
+document.addEventListener("click", (e) => {
+  if (!DOM.quickSearchInput.contains(e.target) && !DOM.quickSearchResults.contains(e.target)) {
+    DOM.quickSearchResults.classList.add("hidden");
+  }
+});
+
+// 아이템 이름을 받아 하단 카테고리를 자동으로 채워주는 함수
+function selectItemAutomatically(itemName) {
+  let targetFacility = "";
+
+  // 1. 해당 아이템이 어떤 가공시설 카테고리에 속해있는지 DB에서 검색
+  for (const facility in GAME_DB) {
+    if (GAME_DB[facility][itemName]) {
+      targetFacility = facility;
+      break;
+    }
+  }
+
+  if (targetFacility) {
+    // 2. 가공시설 Select 박스 값 변경 및 강제 변경 이벤트 발생
+    DOM.facilitySelect.value = targetFacility;
+    updateItemSelect(targetFacility); // 하위 아이템 목록들 리로드
+    
+    // 3. 아이템 Select 박스 값 변경
+    DOM.itemSelect.value = itemName;
+    
+    // 4. 검색창 초기화 및 숨기기
+    DOM.quickSearchInput.value = "";
+    DOM.quickSearchResults.classList.add("hidden");
+  }
+}
