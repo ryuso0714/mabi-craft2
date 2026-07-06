@@ -37,6 +37,20 @@
       <input type="number" id="targetCount" min="1" step="1" value="1">
     </section>
 
+    <section class="card inventory-section">
+      <h2>보유 재료 입력</h2>
+      <form class="search-container" onsubmit="event.preventDefault();">
+  <input type="search" id="invSearchInput" placeholder="보유 중인 재료나 가공품 검색..." autocomplete="off">
+  <div id="searchResults" class="search-results hidden"></div>
+</form>
+      <div class="inv-input-row hidden" id="invInputRow">
+        <span id="selectedItemName"></span>
+        <input type="number" id="invCountInput" min="1" value="1" placeholder="개수">
+        <button id="addInvBtn">추가</button>
+      </div>
+      <div id="invList" class="inv-list"></div>
+    </section>
+
     <section class="card">
       <button id="calcBtn">계산하기</button>
     </section>
