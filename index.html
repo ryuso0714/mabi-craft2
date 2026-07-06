@@ -13,6 +13,13 @@
 
   <main class="container">
     <section class="card">
+      <h2>제작 아이템 간편 검색</h2>
+      <form class="search-container" onsubmit="event.preventDefault();">
+        <input type="search" id="quickSearchInput" placeholder="제작할 아이템 검색 (예: 강철괴)..." autocomplete="off">
+        <div id="quickSearchResults" class="search-results hidden"></div>
+      </form>
+    </section>
+    <section class="card">
       <label for="facilitySelect"><h2>가공시설 선택</h2></label>
       <select id="facilitySelect">
         <option value="">가공시설 선택</option>
