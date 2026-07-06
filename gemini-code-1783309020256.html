@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마비모 가공 도우미⚒️</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <h1>마비모 가공 도우미⚒️</h1>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <label for="facilitySelect"><h2>가공시설 선택</h2></label>
+      <select id="facilitySelect">
+        <option value="">가공시설 선택</option>
+        <option value="metal">금속 가공</option>
+        <option value="wood">목재 가공</option>
+        <option value="leather">가죽 가공</option>
+        <option value="cloth">옷감 가공</option>
+        <option value="potion">약품 가공</option>
+        <option value="food">식재료 가공</option>
+      </select>
+    </section>
+
+    <section class="card">
+      <label for="itemSelect"><h2>아이템 선택</h2></label>
+      <select id="itemSelect" disabled>
+        <option value="">가공시설을 먼저 선택</option>
+      </select>
+    </section>
+
+    <section class="card">
+      <label for="targetCount"><h2>제작할 개수 입력</h2></label>
+      <input type="number" id="targetCount" min="1" step="1" value="1">
+    </section>
+
+    <section class="card">
+      <button id="calcBtn">계산하기</button>
+    </section>
+
+    <section class="card result">
+      <div class="result-container">
+        <div class="result-section">
+          <h2>제작 공정</h2>
+          <div id="craftResult">공정이 없습니다.</div>
+        </div>
+        
+        <div class="result-section">
+          <h2>원재료 총합</h2>
+          <div id="rawResult">필요한 원재료가 없습니다.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="db.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
