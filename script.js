@@ -107,19 +107,9 @@ function findItem(itemName) {
   return null;
 }
 
-// --- 보유 재료 기능 검색 및 UI 인터랙션 로직 ---
-
-// 보유재료 검색창 입력 이벤트
+// 보유재료 검색창 입력 이벤트 (오류 교정 및 최적화 완료!)
 DOM.invSearchInput.addEventListener("input", (e) => {
-  // 위에서 만든 안전한 함수를 통해 실시간으로 마스터 리스트를 가져옵니다.
   const currentMaster = getMasterList();
-
-  const query = e.target.value.trim().toLowerCase();
-  if (!query) {
-    DOM.searchResults.classList.add("hidden");
-    return;
-  }
-  // ... (이하 기존 내부 코드 유지)
 
   const query = e.target.value.trim().toLowerCase();
   if (!query) {
@@ -130,7 +120,8 @@ DOM.invSearchInput.addEventListener("input", (e) => {
   DOM.searchResults.innerHTML = "";
   let hasResults = false;
 
-  for (const [name, info] of Object.entries(ITEM_MASTER)) {
+  // 💥 ITEM_MASTER를 currentMaster로 정확하게 수정했습니다!
+  for (const [name, info] of Object.entries(currentMaster)) {
     if (name.toLowerCase().includes(query)) {
       hasResults = true;
       const div = document.createElement("div");
@@ -148,6 +139,17 @@ DOM.invSearchInput.addEventListener("input", (e) => {
         DOM.searchResults.classList.add("hidden");
         DOM.invSearchInput.value = "";
       });
+
+      DOM.searchResults.appendChild(div);
+    }
+  }
+
+  if (hasResults) {
+    DOM.searchResults.classList.remove("hidden");
+  } else {
+    DOM.searchResults.classList.add("hidden");
+  }
+});
 
       DOM.searchResults.appendChild(div);
     }
