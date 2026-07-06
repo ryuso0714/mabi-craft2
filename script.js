@@ -6,9 +6,9 @@ const DOM = {
   calcBtn: document.getElementById("calcBtn"),
   craftResult: document.getElementById("craftResult"),
   rawResult: document.getElementById("rawResult"),
-  // 신설 보유재료 DOM
-  invSearchInput: document.getElementById("invSearchInput"),
-  searchResults: document.getElementById("searchResults"),
+  // 신설 보유재료 DOM (form 내부의 input을 정확히 가리키도록 수정)
+  invSearchInput: document.querySelector("#invSearchInput"),
+  searchResults: document.querySelector("#searchResults"),
   invInputRow: document.getElementById("invInputRow"),
   selectedItemName: document.getElementById("selectedItemName"),
   invCountInput: document.getElementById("invCountInput"),
